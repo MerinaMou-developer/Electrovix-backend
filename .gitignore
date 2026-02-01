@@ -1,0 +1,34 @@
+# Python bytecode
+*.pyc
+*.pyo
+__pycache__/
+
+# Environment variables and secrets
+.env
+data.json
+# Django database
+# Uncomment if using SQLite in production (not recommended)
+# db.sqlite3
+
+# Static and media files (generated files)
+# static/
+# media/
+
+# Logs
+*.log
+
+# Virtual environments
+
+myenv/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Migrations
+# DO NOT ignore migration files in production
+!*/migrations/*.py
