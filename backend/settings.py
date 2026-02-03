@@ -40,7 +40,7 @@ DEBUG = True
 from decouple import config
 
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ['https://electrovix-ecommerce.onrender.com','https://*.127.0.0.1'] 
+CSRF_TRUSTED_ORIGINS = ['https://electrovix-backend.onrender.com','https://*.127.0.0.1'] 
 
 STORE_ID = config('STORE_ID')
 STORE_PASS = config('STORE_PASS')
