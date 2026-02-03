@@ -30,5 +30,6 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
-# Run migrations, collect static files, then start server
-CMD bash -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn backend.wsgi:application --bind 0.0.0.0:8000"
+# Run migrations, collect static, create superuser (if env vars set), seed products, then start server
+# Set DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_EMAIL, DJANGO_SUPERUSER_PASSWORD in Render env
+CMD bash -c "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py createsuperuser --noinput 2>/dev/null || true && python manage.py seed_products && gunicorn backend.wsgi:application --bind 0.0.0.0:8000"
