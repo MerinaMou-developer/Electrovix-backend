@@ -135,11 +135,15 @@ class Command(BaseCommand):
             )
             brands_by_name[brand_name] = brand
 
-        # Create demo user(s) with Factory Boy
-        demo_user = User.objects.filter(username="demouser").first()
-        if not demo_user:
-            demo_user = UserFactory(username="demouser", email="demo@example.com")
-            self.stdout.write(self.style.SUCCESS(f"Created user: {demo_user.username}"))
+        # Create demo user (get_or_create to avoid duplicate on redeploy)
+        demo_user, demo_created = User.objects.get_or_create(
+            username="demouser",
+            defaults={"email": "demo@example.com"},
+        )
+        if demo_created:
+            demo_user.set_password("demo123")
+            demo_user.save()
+            self.stdout.write(self.style.SUCCESS("Created demo user: demouser / demo123"))
         for i in range(extra_users - 1):
             UserFactory()
 
