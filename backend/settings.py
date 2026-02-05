@@ -207,12 +207,18 @@ MEDIA_ROOT = 'static/images'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000',
-    'https://electrovix.vercel.app',
-    
-     'https://sandbox.sslcommerz.com',           # SSLCommerz sandbox
-    'https://securepay.sslcommerz.com',         # SSLCommerz live
+
+# CORS: allow frontend (Vercel production + preview deployments) and local dev
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://electrovix.vercel.app",
+    "https://sandbox.sslcommerz.com",
+    "https://securepay.sslcommerz.com",
+]
+# Allow all Vercel preview URLs (e.g. electrovix-abc123-username.vercel.app)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
 ]
 
 
