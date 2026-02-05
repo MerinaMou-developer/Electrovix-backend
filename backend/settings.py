@@ -209,7 +209,7 @@ MEDIA_ROOT = 'static/images'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
-    'https://electrovix.vercel.app,
+    'https://electrovix.vercel.app',
     
      'https://sandbox.sslcommerz.com',           # SSLCommerz sandbox
     'https://securepay.sslcommerz.com',         # SSLCommerz live
