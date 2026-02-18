@@ -14,11 +14,11 @@ from base.models import Category,Brand
 from base.serializers import CategorySerializer,BrandSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from sentence_transformers import SentenceTransformer
 from pgvector.django import CosineDistance
 
 # LOAD MODEL ONCE (important)
-EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+from base.ai.embedding import embed_text
+
 
 
 @api_view(['GET'])
@@ -273,22 +273,53 @@ def createProductReview(request, pk):
 
 
 
-
 @api_view(["GET"])
-def semanticSearch(request):
+def hybridSearch(request):
     q = (request.query_params.get("q") or "").strip()
     if not q:
         return Response({"detail": "q query param is required"}, status=400)
 
-    query_vec = EMBED_MODEL.encode([q], normalize_embeddings=True)[0].tolist()
+    TOP_K = 20
+    MAX_DISTANCE = 0.35  # tune once, don't send from frontend
 
-    products = (
+    # 1) Keyword search first (fast + exact)
+    keyword_qs = (
         Product.objects
-        .exclude(embedding__isnull=True)
         .select_related("category", "brand")
-        .annotate(distance=CosineDistance("embedding", query_vec))
-        .order_by("distance")[:20]
+        .filter(
+            Q(name__icontains=q) |
+            Q(brand__name__icontains=q) |
+            Q(category__name__icontains=q)
+        )
+        .order_by("-createdAt")[:TOP_K]
     )
 
-    serializer = ProductSerializer(products, many=True)
-    return Response({"products": serializer.data})
+    # IMPORTANT: keyword_qs is already sliced, so use len()
+    if len(keyword_qs) >= 5:
+        return Response({
+            "mode": "keyword",
+            "products": ProductSerializer(keyword_qs, many=True).data
+        })
+
+    # 2) Semantic fallback (only good similarity)
+    query_vec = embed_text(q)
+
+    keyword_ids = keyword_qs.values_list("_id", flat=True)
+
+    semantic_qs = (
+        Product.objects
+        .exclude(embedding__isnull=True)
+        .exclude(_id__in=keyword_ids)  # ✅ DB-level dedupe
+        .select_related("category", "brand")
+        .annotate(distance=CosineDistance("embedding", query_vec))
+        .filter(distance__lte=MAX_DISTANCE)
+        .order_by("distance")[:TOP_K]
+    )
+
+    final_list = list(keyword_qs) + list(semantic_qs)
+    final_list = final_list[:TOP_K]
+
+    return Response({
+        "mode": "hybrid",
+        "products": ProductSerializer(final_list, many=True).data
+    })
