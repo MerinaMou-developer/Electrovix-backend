@@ -33,3 +33,9 @@ urllib3
 wheel
 gunicorn
 whitenoise
+# ---- AI Semantic Search ----
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.3.1
+sentence-transformers==3.0.1
+pgvector==0.4.2
+

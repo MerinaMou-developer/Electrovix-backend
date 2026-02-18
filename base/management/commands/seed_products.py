@@ -84,6 +84,77 @@ PRODUCTS_DATA = [
 ]
 
 
+# ---- EXTRA PRODUCTS for Semantic Search testing (Gaming Laptop etc.) ----
+PRODUCTS_DATA += [
+    {
+        "name": "ASUS ROG Strix G15 Gaming Laptop",
+        "image": "/images/laptop-asus-rog.jpg",
+        "description": "15.6-inch gaming laptop with high refresh display, powerful GPU, fast SSD, great for gaming and heavy tasks.",
+        "brand": "ASUS",
+        "category": "Laptops",
+        "price": Decimal("1199.99"),
+        "countInStock": 6,
+        "rating": Decimal("4.6"),
+        "numReviews": 18,
+    },
+    {
+        "name": "Lenovo Legion 5 Gaming Laptop",
+        "image": "/images/laptop-lenovo-legion.jpg",
+        "description": "Lenovo Legion gaming laptop with strong performance, good cooling, and smooth gameplay experience.",
+        "brand": "Lenovo",
+        "category": "Laptops",
+        "price": Decimal("1099.99"),
+        "countInStock": 8,
+        "rating": Decimal("4.5"),
+        "numReviews": 22,
+    },
+    {
+        "name": "Acer Nitro 5 Gaming Laptop",
+        "image": "/images/laptop-acer-nitro.jpg",
+        "description": "Budget gaming laptop, solid FPS for popular games, SSD storage, and good value for money.",
+        "brand": "Acer",
+        "category": "Laptops",
+        "price": Decimal("899.99"),
+        "countInStock": 10,
+        "rating": Decimal("4.2"),
+        "numReviews": 30,
+    },
+    {
+        "name": "Dell XPS 13 Ultrabook Laptop",
+        "image": "/images/laptop-dell-xps.jpg",
+        "description": "Premium ultrabook with sharp display, lightweight design, fast performance for office and study.",
+        "brand": "Dell",
+        "category": "Laptops",
+        "price": Decimal("1299.99"),
+        "countInStock": 5,
+        "rating": Decimal("4.7"),
+        "numReviews": 15,
+    },
+    {
+        "name": "Apple MacBook Air M2",
+        "image": "/images/laptop-macbook-air.jpg",
+        "description": "Thin and light laptop with great battery life and smooth performance for coding, design, and everyday work.",
+        "brand": "Apple",
+        "category": "Laptops",
+        "price": Decimal("999.99"),
+        "countInStock": 7,
+        "rating": Decimal("4.8"),
+        "numReviews": 40,
+    },
+    {
+        "name": "Logitech G Pro Wireless Gaming Mouse",
+        "image": "/images/mouse-logitech-gpro.jpg",
+        "description": "Esports-grade wireless gaming mouse, ultra-lightweight, accurate sensor, perfect for FPS games.",
+        "brand": "Logitech",
+        "category": "Gaming Accessories",
+        "price": Decimal("129.99"),
+        "countInStock": 12,
+        "rating": Decimal("4.7"),
+        "numReviews": 50,
+    },
+]
+
+
 def slugify(name):
     return name.lower().replace(" ", "-").replace("'", "")[:40]
 

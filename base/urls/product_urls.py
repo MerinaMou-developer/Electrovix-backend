@@ -2,6 +2,7 @@ from django.urls import path
 from base.views import product_views
 
 urlpatterns = [
+   path("semantic-search/", product_views.semanticSearch, name="semantic-search"),
    path('categories/', product_views.getCategories, name="category"),
    path('brand/', product_views.getBrand, name="brand"),
    path('', product_views.getProducts,name="products"),
@@ -12,6 +13,8 @@ urlpatterns = [
    path('<str:pk>/', product_views.getProduct,name="product"),
    path('delete/<str:pk>/', product_views.deleteProduct,name="product-delete"),
    path('update/<str:pk>/',product_views.updateProduct, name="product-update"),
+  
+
   
 
 ]

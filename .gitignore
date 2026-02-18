@@ -29,6 +29,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+gunicorn.ctl
+
+
 # Migrations
 # DO NOT ignore migration files in production
 !*/migrations/*.py

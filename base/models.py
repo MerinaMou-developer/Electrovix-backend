@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 # Create your models here.
 # Create your models here.
 from django.db import models
+from pgvector.django import VectorField
 
 class Brand(models.Model):
     name = models.CharField(max_length=30)
@@ -42,6 +43,13 @@ class Product(models.Model):
     countInStock = models.IntegerField(null=True, blank=True, default=0)
     createdAt = models.DateTimeField(auto_now_add=True)
     _id = models.AutoField(primary_key=True, editable=False)
+    embedding = VectorField(dimensions=384, null=True, blank=True)
+
+    def embedding_text(self):
+        category_name = self.category.name if self.category else ""
+        brand_name = self.brand.name if self.brand else ""
+        return f"{self.name}. {brand_name}. {category_name}. {self.description or ''}"
+
 
     def __str__(self):
         return self.name

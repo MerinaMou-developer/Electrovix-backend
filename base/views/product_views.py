@@ -14,6 +14,12 @@ from base.models import Category,Brand
 from base.serializers import CategorySerializer,BrandSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from sentence_transformers import SentenceTransformer
+from pgvector.django import CosineDistance
+
+# LOAD MODEL ONCE (important)
+EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+
 
 @api_view(['GET'])
 def getProducts(request):
@@ -265,3 +271,24 @@ def createProductReview(request, pk):
 
         return Response('Review Added')
 
+
+
+
+@api_view(["GET"])
+def semanticSearch(request):
+    q = (request.query_params.get("q") or "").strip()
+    if not q:
+        return Response({"detail": "q query param is required"}, status=400)
+
+    query_vec = EMBED_MODEL.encode([q], normalize_embeddings=True)[0].tolist()
+
+    products = (
+        Product.objects
+        .exclude(embedding__isnull=True)
+        .select_related("category", "brand")
+        .annotate(distance=CosineDistance("embedding", query_vec))
+        .order_by("distance")[:20]
+    )
+
+    serializer = ProductSerializer(products, many=True)
+    return Response({"products": serializer.data})
