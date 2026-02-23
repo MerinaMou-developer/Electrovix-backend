@@ -185,7 +185,7 @@ def phone_score(p: Product) -> int:
 # ----------------------------
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([])
 def ai_chat(request):
     msg = (request.data.get("message") or "").strip()
     if not msg:
