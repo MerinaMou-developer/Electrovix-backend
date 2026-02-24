@@ -7,8 +7,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('base', '0010_order_transaction_id'),
-    ]
+            ("base", "0010_1_enable_vector"),
+        ]
 
     operations = [
         migrations.AddField(
