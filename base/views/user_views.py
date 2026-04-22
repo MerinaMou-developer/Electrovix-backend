@@ -83,7 +83,7 @@ def registerUser(request):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
 
         # Activation link
-        activation_link = f"https://electrovix.netlify.app/activate/{uid}/{token}"
+        activation_link = f"https://electrovix.vercel.app/activate/{uid}/{token}"
 
 
         # Send activation email

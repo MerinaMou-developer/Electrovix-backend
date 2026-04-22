@@ -151,9 +151,9 @@ def paymentSuccess(request):
             order.paidAt = datetime.now()
             order.save()
             # Redirect to frontend confirmation page
-            return redirect(f"https://electrovix.netlify.app/order/{order._id}?status=success")
+            return redirect(f"https://electrovix.vercel.app/order/{order._id}?status=success")
         else:
-            return redirect(f"https://electrovix.netlify.app/order/{order._id}?status=fail")
+            return redirect(f"https://electrovix.vercel.app/order/{order._id}?status=fail")
     except Order.DoesNotExist:
         return Response({'detail': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -162,14 +162,14 @@ def paymentFail(request):
     data = request.data
     transaction_id = data.get('tran_id', 'N/A')
     print(f"Payment failed for transaction ID: {transaction_id}")
-    return redirect(f"https://electrovix.netlify.app/order/0?status=fail")
+    return redirect(f"https://electrovix.vercel.app/order/0?status=fail")
 
 @api_view(['POST'])
 def paymentCancel(request):
     data = request.data
     transaction_id = data.get('tran_id', 'N/A')
     print(f"Payment canceled for transaction ID: {transaction_id}")
-    return redirect(f"https://electrovix.netlify.app/order/0?status=cancel")
+    return redirect(f"https://electrovix.vercel.app/order/0?status=cancel")
 
 
 

@@ -27,9 +27,9 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = "django-insecure-##bm7e8xn@1smhttzw5txvjg@i#gd3b6uq3y1jl=-rx5@7qab^"
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = env("SECRET_KEY", default="dev-only-insecure-secret-key")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=True)
 # from decouple import config
 
 # SSL_STORE_ID = config('SSL_STORE_ID')
@@ -39,15 +39,15 @@ DEBUG = True
 # CANCEL_URL = config('CANCEL_URL')
 from decouple import config
 
-ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ['https://electrovix-backend.onrender.com','https://*.127.0.0.1'] 
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
+CSRF_TRUSTED_ORIGINS = ['https://electrovix-backend.onrender.com','https://*.127.0.0.1','https://electrovix.vercel.app'] 
 
-STORE_ID = config('STORE_ID')
-STORE_PASS = config('STORE_PASS')
-ISSANDBOX = config('ISSANDBOX', cast=bool)
-SUCCESS_URL = config('SUCCESS_URL')
-FAIL_URL = config('FAIL_URL')
-CANCEL_URL = config('CANCEL_URL')
+STORE_ID = config('STORE_ID', default='')
+STORE_PASS = config('STORE_PASS', default='')
+ISSANDBOX = config('ISSANDBOX', cast=bool, default=True)
+SUCCESS_URL = config('SUCCESS_URL', default='http://localhost:3000')
+FAIL_URL = config('FAIL_URL', default='http://localhost:3000')
+CANCEL_URL = config('CANCEL_URL', default='http://localhost:3000')
 
 
 
@@ -139,19 +139,27 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env("DB_NAME"),     # Example: 'mydb'
-        'USER': env("DB_USER"),         # Default user
-        'PASSWORD': env("DB_PASSWORD"),# Enter the real password
-        'HOST': env("DB_HOST"),
-        'PORT': env("DB_PORT"),
-         'OPTIONS': {
-              'sslmode': env('DB_SSLMODE', default='disable') 
+if env.bool("USE_SQLITE", default=False):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env("DB_NAME"),     # Example: 'mydb'
+            'USER': env("DB_USER"),         # Default user
+            'PASSWORD': env("DB_PASSWORD"),# Enter the real password
+            'HOST': env("DB_HOST"),
+            'PORT': env("DB_PORT"),
+             'OPTIONS': {
+                  'sslmode': env('DB_SSLMODE', default='disable')
+            }
+        }
+    }
 
 
 
@@ -228,5 +236,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = env("EMAIL")
-EMAIL_HOST_PASSWORD = env("EMAIL_PASSWORD")
+EMAIL_HOST_USER = env("EMAIL", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_PASSWORD", default="")
