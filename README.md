@@ -6,6 +6,7 @@ Electrovix backend is a production‑style **Django REST Framework** API that po
 
 - **Base URL**: [`https://electrovix-backend.onrender.com`](https://electrovix-backend.onrender.com)
 - **API prefix**: `/api`
+- **Frontend URL (production)**: [`https://electrovix.vercel.app/`](https://electrovix.vercel.app/)
 
 ---
 
@@ -184,6 +185,10 @@ Typical required variables:
 
 Note: The activation email and payment callbacks redirect to the frontend URL. If your frontend domain changes, update those redirect/activation URLs accordingly.
 
+Current production frontend redirect domain is:
+
+- `https://electrovix.vercel.app/`
+
 ---
 
 ### 🧠 AI Semantic Search (How it works)
@@ -231,4 +236,40 @@ The production server uses **Gunicorn** and can collect static files via **White
   - SSLCommerz credentials + callback URLs
 
 The provided `Dockerfile` runs migrations, collects static, seeds products, and starts Gunicorn.
+
+---
+
+### 🧪 Tests
+
+Starter API smoke tests exist in:
+
+- `base/tests.py`
+
+Run tests locally:
+
+```bash
+python manage.py test
+```
+
+For CI/local environments without PostgreSQL, you can use SQLite mode:
+
+```bash
+USE_SQLITE=true python manage.py test
+```
+
+---
+
+### ⚙️ CI/CD (GitHub Actions)
+
+This project includes backend CI/CD workflow at:
+
+- `.github/workflows/backend-ci-cd.yml`
+
+What it does:
+
+- Runs on pull requests and pushes to `main`/`master`
+- Installs dependencies
+- Runs `python manage.py check`
+- Runs `python manage.py test`
+- Optionally triggers Render deploy hook if `RENDER_DEPLOY_HOOK_URL` secret is configured
 
