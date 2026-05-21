@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 from base.models import Product, Order, OrderItem, ShippingAddress
 from base.serializers import ProductSerializer, OrderSerializer
+from base.utils.media import absolute_media_url
 
 from rest_framework import status
 from datetime import datetime
@@ -64,7 +65,7 @@ def addOrderItems(request):
             name=product.name,
             qty=i['qty'],
             price=i['price'],
-            image=product.image.url,
+            image=absolute_media_url(product.image, request),
         )
 
         # Update stock

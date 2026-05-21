@@ -183,6 +183,15 @@ Typical required variables:
   - `ISSANDBOX` (boolean)
   - `SUCCESS_URL`, `FAIL_URL`, `CANCEL_URL`
 
+- **Product images (required on Render)**
+  - Render’s filesystem is **ephemeral** — files saved under `static/images` are deleted on redeploy/restart.
+  - Use **Cloudinary** (free tier) so uploads persist:
+    - `CLOUDINARY_CLOUD_NAME`
+    - `CLOUDINARY_API_KEY`
+    - `CLOUDINARY_API_SECRET`
+  - Optional: `BACKEND_BASE_URL` (defaults to `https://electrovix-backend.onrender.com`)
+  - Sign up: [cloudinary.com](https://cloudinary.com) → Dashboard → copy API credentials → add to Render **Environment** → redeploy.
+
 Note: The activation email and payment callbacks redirect to the frontend URL. If your frontend domain changes, update those redirect/activation URLs accordingly.
 
 Current production frontend redirect domain is:

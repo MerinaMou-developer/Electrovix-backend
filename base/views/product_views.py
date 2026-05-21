@@ -84,7 +84,7 @@ def getProducts(request):
         products = paginator.page(paginator.num_pages)
 
     # Serialize and return the data
-    serializer = ProductSerializer(products, many=True)
+    serializer = ProductSerializer(products, many=True, context={"request": request})
 
     return Response({
         'products': serializer.data,
@@ -109,14 +109,14 @@ def getBrand(request):
 @api_view(['GET'])
 def getTopProducts(request):
     products = Product.objects.filter(rating__gte=4).order_by('-rating')[0:5]
-    serializer = ProductSerializer(products, many=True)
+    serializer = ProductSerializer(products, many=True, context={"request": request})
     return Response(serializer.data)
 
 @api_view(['GET'])
 def getProduct(request,pk):
 
     product= Product.objects.get(_id=pk)
-    serializer=ProductSerializer(product,many=False)
+    serializer=ProductSerializer(product,many=False, context={"request": request})
 
     return Response(serializer.data)
 
@@ -145,7 +145,7 @@ def createProduct(request):
         discountPercentage=discount_percentage  # Set the discount percentage
     )
 
-    serializer = ProductSerializer(product, many=False)
+    serializer = ProductSerializer(product, many=False, context={"request": request})
     return Response(serializer.data)
 
 
@@ -195,7 +195,7 @@ def updateProduct(request, pk):
         product.description = data['description']
         product.save()
 
-        serializer = ProductSerializer(product, many=False)
+        serializer = ProductSerializer(product, many=False, context={"request": request})
         return Response(serializer.data)
 
     except Product.DoesNotExist:
@@ -216,16 +216,28 @@ def deleteProduct(request, pk):
     return Response('Producted Deleted')
 
 @api_view(['POST'])
+@permission_classes([IsAdminUser])
 def uploadImage(request):
-    data = request.data
+    from base.utils.media import absolute_media_url
 
-    product_id = data['product_id']
-    product = Product.objects.get(_id=product_id)
+    product_id = request.data.get("product_id")
+    image_file = request.FILES.get("image")
 
-    product.image = request.FILES.get('image')
+    if not product_id or not image_file:
+        return Response(
+            {"detail": "product_id and image file are required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        product = Product.objects.get(_id=product_id)
+    except Product.DoesNotExist:
+        return Response({"detail": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    product.image = image_file
     product.save()
 
-    return Response('Image was uploaded')
+    return Response({"image": absolute_media_url(product.image, request)})
 
 
 
@@ -298,7 +310,7 @@ def hybridSearch(request):
     if len(keyword_qs) >= 5:
         return Response({
             "mode": "keyword",
-            "products": ProductSerializer(keyword_qs, many=True).data
+            "products": ProductSerializer(keyword_qs, many=True, context={"request": request}).data
         })
 
     # 2) Semantic fallback (only good similarity)
@@ -321,5 +333,5 @@ def hybridSearch(request):
 
     return Response({
         "mode": "hybrid",
-        "products": ProductSerializer(final_list, many=True).data
+        "products": ProductSerializer(final_list, many=True, context={"request": request}).data
     })

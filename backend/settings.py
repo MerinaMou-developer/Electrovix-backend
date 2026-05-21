@@ -203,13 +203,51 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-MEDIA_URL = '/images/'
+MEDIA_URL = "/images/"
 
-STATICFILES_DIRS  = [
-    BASE_DIR / 'static'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
 ]
 
-MEDIA_ROOT = 'static/images'
+MEDIA_ROOT = BASE_DIR / "static" / "images"
+
+# Public backend URL for absolute image links (Render production)
+BACKEND_BASE_URL = env(
+    "BACKEND_BASE_URL",
+    default="https://electrovix-backend.onrender.com",
+).rstrip("/")
+
+# --- Persistent media on Render (ephemeral disk wipes local uploads) ---
+# Set CLOUDINARY_* on Render so uploaded images survive redeploys.
+CLOUDINARY_CLOUD_NAME = env("CLOUDINARY_CLOUD_NAME", default="")
+CLOUDINARY_API_KEY = env("CLOUDINARY_API_KEY", default="")
+CLOUDINARY_API_SECRET = env("CLOUDINARY_API_SECRET", default="")
+
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    INSTALLED_APPS += ["cloudinary", "cloudinary_storage"]
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
+        "API_KEY": CLOUDINARY_API_KEY,
+        "API_SECRET": CLOUDINARY_API_SECRET,
+        "SECURE": True,
+    }
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

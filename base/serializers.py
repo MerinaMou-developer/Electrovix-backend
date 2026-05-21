@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Product,Order,OrderItem,ShippingAddress, Review
+from .models import Product, Order, OrderItem, ShippingAddress, Review
 from base.models import Category
+from base.utils.media import absolute_media_url
 
 from .models import Brand
 class UserSerializer(serializers.ModelSerializer):
@@ -70,6 +71,12 @@ class ProductSerializer(serializers.ModelSerializer):
         reviews = obj.review_set.all()
         serializer = ReviewSerializer(reviews, many=True)
         return serializer.data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        data["image"] = absolute_media_url(instance.image, request)
+        return data
 
 
 

@@ -201,7 +201,7 @@ def ai_chat(request):
             reverse=True,
         )
 
-    products_json = ProductSerializer(products, many=True).data
+    products_json = ProductSerializer(products, many=True, context={"request": request}).data
     answer = generate_answer(msg, products)
 
     return Response({
