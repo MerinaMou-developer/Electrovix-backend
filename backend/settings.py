@@ -218,12 +218,42 @@ BACKEND_BASE_URL = env(
 ).rstrip("/")
 
 # --- Persistent media on Render (ephemeral disk wipes local uploads) ---
-# Set CLOUDINARY_* on Render so uploaded images survive redeploys.
-CLOUDINARY_CLOUD_NAME = env("CLOUDINARY_CLOUD_NAME", default="")
-CLOUDINARY_API_KEY = env("CLOUDINARY_API_KEY", default="")
-CLOUDINARY_API_SECRET = env("CLOUDINARY_API_SECRET", default="")
+# Option A (recommended on Render): single CLOUDINARY_URL from dashboard
+#   cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+# Option B: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+def _cloudinary_credentials():
+    url = env("CLOUDINARY_URL", default="").strip()
+    if url:
+        # cloudinary://<api_key>:<api_secret>@<cloud_name>
+        from urllib.parse import urlparse
+
+        parsed = urlparse(url)
+        return {
+            "cloud_name": (parsed.hostname or "").strip(),
+            "api_key": (parsed.username or "").strip(),
+            "api_secret": (parsed.password or "").strip(),
+        }
+    return {
+        "cloud_name": env("CLOUDINARY_CLOUD_NAME", default="").strip(),
+        "api_key": env("CLOUDINARY_API_KEY", default="").strip(),
+        "api_secret": env("CLOUDINARY_API_SECRET", default="").strip(),
+    }
+
+
+_creds = _cloudinary_credentials()
+CLOUDINARY_CLOUD_NAME = _creds["cloud_name"]
+CLOUDINARY_API_KEY = _creds["api_key"]
+CLOUDINARY_API_SECRET = _creds["api_secret"]
 
 if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    import cloudinary
+
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET,
+        secure=True,
+    )
     INSTALLED_APPS += ["cloudinary", "cloudinary_storage"]
     CLOUDINARY_STORAGE = {
         "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
