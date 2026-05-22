@@ -363,3 +363,6 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 }
 
 FRONTEND_URL = env("FRONTEND_URL", default="https://electrovix.vercel.app").rstrip("/")
+
+# Google Sign-In (OAuth 2.0 Client ID — same value on frontend REACT_APP_GOOGLE_CLIENT_ID)
+GOOGLE_OAUTH_CLIENT_ID = env("GOOGLE_OAUTH_CLIENT_ID", default="").strip()
