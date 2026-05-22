@@ -100,6 +100,7 @@ class Order(models.Model):
         auto_now_add=False, null=True, blank=True)
     createdAt = models.DateTimeField(auto_now_add=True)
     transaction_id = models.CharField(max_length=100, null=True, blank=True)  # Ensure this exists
+    confirmationEmailSent = models.BooleanField(default=False)
     _id = models.AutoField(primary_key=True, editable=False)
 
     def __str__(self):

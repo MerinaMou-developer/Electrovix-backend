@@ -18,6 +18,7 @@ from pgvector.django import CosineDistance
 
 # LOAD MODEL ONCE (important)
 from base.ai.embedding import embed_text
+from base.utils.catalog_cache import cached_catalog, invalidate_catalog_cache, META_TTL, PRODUCTS_TTL
 
 
 def _cache_public(response, max_age=300):
@@ -27,6 +28,7 @@ def _cache_public(response, max_age=300):
 
 
 @api_view(['GET'])
+@cached_catalog("products", PRODUCTS_TTL)
 def getProducts(request):
     query = request.query_params.get('keyword', '')
     category_slug = request.query_params.get('category_slug', '')
@@ -99,12 +101,14 @@ def getProducts(request):
     }))
 
 @api_view(['GET'])
+@cached_catalog("categories", META_TTL)
 def getCategories(request):
     categories = Category.objects.all()
     serializer = CategorySerializer(categories, many=True)
     return _cache_public(Response(serializer.data), max_age=600)
 
 @api_view(['GET'])
+@cached_catalog("brands", META_TTL)
 def getBrand(request):
     brand = Brand.objects.all()
     serializer = BrandSerializer(brand, many=True)
@@ -112,6 +116,7 @@ def getBrand(request):
 
 
 @api_view(['GET'])
+@cached_catalog("top_products", META_TTL)
 def getTopProducts(request):
     products = Product.objects.filter(rating__gte=4).order_by('-rating')[0:5]
     serializer = ProductSerializer(products, many=True, context={"request": request})

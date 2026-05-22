@@ -40,4 +40,8 @@ django-cloudinary-storage
 torch==2.3.1
 sentence-transformers==3.0.1
 pgvector==0.4.2
+# ---- Async tasks & cache ----
+celery==5.4.0
+redis==5.2.1
+django-redis==5.4.0
 

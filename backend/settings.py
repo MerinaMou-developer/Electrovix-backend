@@ -306,3 +306,51 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = env("EMAIL", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+ADMIN_ALERT_EMAIL = env("ADMIN_ALERT_EMAIL", default=EMAIL_HOST_USER)
+
+# --- Stock alerts ---
+LOW_STOCK_THRESHOLD = env.int("LOW_STOCK_THRESHOLD", default=5)
+LOW_STOCK_ALERT_COOLDOWN = env.int("LOW_STOCK_ALERT_COOLDOWN", default=6 * 60 * 60)  # seconds
+
+# --- Redis (cache + optional Celery broker) ---
+REDIS_URL = env("REDIS_URL", default="").strip()
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=REDIS_URL).strip()
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=CELERY_BROKER_URL).strip()
+CELERY_ENABLED = bool(CELERY_BROKER_URL) and env.bool("USE_CELERY", default=True)
+
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "SOCKET_CONNECT_TIMEOUT": 5,
+                "SOCKET_TIMEOUT": 5,
+                "IGNORE_EXCEPTIONS": True,
+            },
+            "KEY_PREFIX": "electrovix",
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "electrovix-local",
+        }
+    }
+
+# --- Celery ---
+CELERY_TASK_ALWAYS_EAGER = env.bool(
+    "CELERY_TASK_ALWAYS_EAGER",
+    default=not CELERY_ENABLED,
+)
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+FRONTEND_URL = env("FRONTEND_URL", default="https://electrovix.vercel.app").rstrip("/")

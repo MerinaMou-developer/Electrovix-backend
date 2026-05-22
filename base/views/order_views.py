@@ -7,11 +7,12 @@ from rest_framework.response import Response
 from base.models import Product, Order, OrderItem, ShippingAddress
 from base.serializers import ProductSerializer, OrderSerializer
 from base.utils.media import absolute_media_url
+from base.services.stock import decrement_stock, queue_order_confirmation
 
 from rest_framework import status
 from datetime import datetime
 from sslcommerz_lib import SSLCOMMERZ
-from django.conf import settings
+from django.conf import settings as django_settings
 from decouple import config
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -68,12 +69,13 @@ def addOrderItems(request):
             image=absolute_media_url(product.image, request),
         )
 
-        # Update stock
-        if product.countInStock >= item.qty:
-            product.countInStock -= item.qty
-            product.save()
-        else:
-            return Response({'detail': f'Not enough stock for product {product.name}'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            decrement_stock(product, item.qty)
+        except ValueError:
+            return Response(
+                {'detail': f'Not enough stock for product {product.name}'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     # Serialize and return order details
     serializer = OrderSerializer(order, many=False)
@@ -95,14 +97,13 @@ def initiatePayment(request):
         return Response({'detail': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
     # SSLCommerz initialization and response logic
-    settings = {
+    ssl_settings = {
         'store_id': config('STORE_ID'),
         'store_pass': config('STORE_PASS'),
         'issandbox': config('ISSANDBOX', cast=bool),
     }
 
-
-    sslcz = SSLCOMMERZ(settings)
+    sslcz = SSLCOMMERZ(ssl_settings)
 
     post_body = {
         'total_amount': order.totalPrice,
@@ -151,10 +152,10 @@ def paymentSuccess(request):
             order.isPaid = True
             order.paidAt = datetime.now()
             order.save()
-            # Redirect to frontend confirmation page
-            return redirect(f"https://electrovix.vercel.app/order/{order._id}?status=success")
+            queue_order_confirmation(order._id)
+            return redirect(f"{django_settings.FRONTEND_URL}/order/{order._id}?status=success")
         else:
-            return redirect(f"https://electrovix.vercel.app/order/{order._id}?status=fail")
+            return redirect(f"{django_settings.FRONTEND_URL}/order/{order._id}?status=fail")
     except Order.DoesNotExist:
         return Response({'detail': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -163,14 +164,14 @@ def paymentFail(request):
     data = request.data
     transaction_id = data.get('tran_id', 'N/A')
     print(f"Payment failed for transaction ID: {transaction_id}")
-    return redirect(f"https://electrovix.vercel.app/order/0?status=fail")
+    return redirect(f"{django_settings.FRONTEND_URL}/order/0?status=fail")
 
 @api_view(['POST'])
 def paymentCancel(request):
     data = request.data
     transaction_id = data.get('tran_id', 'N/A')
     print(f"Payment canceled for transaction ID: {transaction_id}")
-    return redirect(f"https://electrovix.vercel.app/order/0?status=cancel")
+    return redirect(f"{django_settings.FRONTEND_URL}/order/0?status=cancel")
 
 
 
@@ -254,6 +255,7 @@ def updateOrderToPaid(request, pk):
     order.isPaid = True
     order.paidAt = datetime.now()
     order.save()
+    queue_order_confirmation(order._id)
 
     return Response('Order was paid')
 
