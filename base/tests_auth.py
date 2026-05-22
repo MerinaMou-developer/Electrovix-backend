@@ -41,6 +41,7 @@ class PasswordResetTests(APITestCase):
 
     @patch("base.views.user_views.send_mail")
     def test_password_reset_same_response_for_unknown_email(self, mock_send_mail):
+        mock_send_mail.return_value = 1
         known = self.client.post(
             reverse("password-reset"),
             {"email": "reset@test.com"},
@@ -56,6 +57,16 @@ class PasswordResetTests(APITestCase):
         self.assertEqual(unknown.status_code, status.HTTP_200_OK)
         self.assertEqual(known.data["detail"], unknown.data["detail"])
         mock_send_mail.assert_called_once()
+
+    @patch("base.views.user_views.send_mail", side_effect=Exception("SMTP down"))
+    def test_password_reset_returns_200_when_email_fails(self, mock_send_mail):
+        response = self.client.post(
+            reverse("password-reset"),
+            {"email": "reset@test.com"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("detail", response.data)
 
     def test_password_reset_confirm(self):
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))

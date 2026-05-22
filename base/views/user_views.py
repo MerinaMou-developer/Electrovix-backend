@@ -129,12 +129,25 @@ def _pwd_reset_rate_key(email: str) -> str:
     return f"pwd_reset_rate:{digest}"
 
 
-def _send_password_reset_email(user: User) -> None:
+def _auth_from_email() -> str:
+    """Sender address for auth emails (matches registerUser)."""
+    return (
+        (getattr(settings, "DEFAULT_FROM_EMAIL", None) or "").strip()
+        or (getattr(settings, "EMAIL_HOST_USER", None) or "").strip()
+    )
+
+
+def _send_password_reset_email(user: User) -> bool:
+    from_email = _auth_from_email()
+    if not from_email:
+        logger.warning("Password reset email skipped: EMAIL/DEFAULT_FROM_EMAIL not configured")
+        return False
+
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = password_reset_token.make_token(user)
     reset_link = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}"
 
-    send_mail(
+    sent = send_mail(
         subject="Reset your Electrovix password",
         message=(
             f"Hi {user.first_name or user.username},\n\n"
@@ -143,28 +156,37 @@ def _send_password_reset_email(user: User) -> None:
             f"If you did not request this, ignore this email.\n\n"
             f"— Electrovix"
         ),
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        from_email=from_email,
         recipient_list=[user.email],
-        fail_silently=False,
+        fail_silently=True,
     )
+    return bool(sent)
 
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def requestPasswordReset(request):
-    email = (request.data.get("email") or "").strip().lower()
+    try:
+        email = str(request.data.get("email") or "").strip().lower()
 
-    if email:
-        key = _pwd_reset_rate_key(email)
-        count = cache.get(key, 0)
-        if count < PWD_RESET_RATE_MAX:
-            cache.set(key, count + 1, PWD_RESET_RATE_SECONDS)
-            user = User.objects.filter(email__iexact=email).first()
-            if user and user.is_active:
+        if email:
+            key = _pwd_reset_rate_key(email)
+            try:
+                count = int(cache.get(key, 0) or 0)
+            except (TypeError, ValueError):
+                count = 0
+
+            if count < PWD_RESET_RATE_MAX:
                 try:
-                    _send_password_reset_email(user)
+                    cache.set(key, count + 1, PWD_RESET_RATE_SECONDS)
                 except Exception:
-                    logger.exception("Password reset email failed for user id=%s", user.pk)
+                    logger.warning("Password reset rate-limit cache unavailable", exc_info=True)
+
+                user = User.objects.filter(email__iexact=email).first()
+                if user and user.is_active:
+                    _send_password_reset_email(user)
+    except Exception:
+        logger.exception("Password reset request failed")
 
     return Response({"detail": GENERIC_RESET_MESSAGE}, status=status.HTTP_200_OK)
 
