@@ -9,6 +9,10 @@ urlpatterns = [
     path('register/', views.registerUser, name='register'),
     path('activate/<str:uid>/<str:token>/', views.activateUser, name='activate'),
 
+    path('google/', views.googleAuth, name='google-auth'),
+    path('password-reset/', views.requestPasswordReset, name='password-reset'),
+    path('password-reset/confirm/', views.confirmPasswordReset, name='password-reset-confirm'),
+
     path('profile/', views.getUserProfile, name="users-profile"),
     path('profile/update/', views.updateUserProfile, name="user-profile-update"),
     path('', views.getUsers, name="users"),
