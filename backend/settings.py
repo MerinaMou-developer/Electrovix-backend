@@ -351,6 +351,15 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+# Avoid hanging Gunicorn boot when Redis is down or misconfigured on Render.
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = env.bool(
+    "CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP",
+    default=False,
+)
+CELERY_BROKER_CONNECTION_TIMEOUT = env.int("CELERY_BROKER_CONNECTION_TIMEOUT", default=3)
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "socket_timeout": CELERY_BROKER_CONNECTION_TIMEOUT,
+    "socket_connect_timeout": CELERY_BROKER_CONNECTION_TIMEOUT,
+}
 
 FRONTEND_URL = env("FRONTEND_URL", default="https://electrovix.vercel.app").rstrip("/")

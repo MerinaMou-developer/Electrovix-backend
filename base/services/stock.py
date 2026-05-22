@@ -1,7 +1,7 @@
 from django.conf import settings
 
 from base.tasks import send_low_stock_alert_task
-from base.utils.task_dispatch import enqueue
+from base.utils.task_dispatch import enqueue_background
 
 
 def decrement_stock(product, qty: int) -> None:
@@ -17,10 +17,10 @@ def decrement_stock(product, qty: int) -> None:
 
     threshold = settings.LOW_STOCK_THRESHOLD
     if product.countInStock <= threshold:
-        enqueue(send_low_stock_alert_task, product._id)
+        enqueue_background(send_low_stock_alert_task, product._id)
 
 
 def queue_order_confirmation(order_id: int) -> None:
     from base.tasks import send_order_confirmation_task
 
-    enqueue(send_order_confirmation_task, order_id)
+    enqueue_background(send_order_confirmation_task, order_id)

@@ -81,14 +81,14 @@ class StockAlertTests(TestCase):
             countInStock=6,
         )
 
-    @patch("base.services.stock.enqueue")
+    @patch("base.services.stock.enqueue_background")
     def test_low_stock_triggers_alert(self, mock_enqueue):
         decrement_stock(self.product, 2)
         self.product.refresh_from_db()
         self.assertEqual(self.product.countInStock, 4)
         mock_enqueue.assert_called_once()
 
-    @patch("base.services.stock.enqueue")
+    @patch("base.services.stock.enqueue_background")
     def test_stock_above_threshold_no_alert(self, mock_enqueue):
         self.product.countInStock = 20
         self.product.save()
