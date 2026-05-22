@@ -20,6 +20,11 @@ from pgvector.django import CosineDistance
 from base.ai.embedding import embed_text
 
 
+def _cache_public(response, max_age=300):
+    """Short CDN/browser cache for read-only catalog endpoints."""
+    response["Cache-Control"] = f"public, max-age={max_age}"
+    return response
+
 
 @api_view(['GET'])
 def getProducts(request):
@@ -86,24 +91,24 @@ def getProducts(request):
     # Serialize and return the data
     serializer = ProductSerializer(products, many=True, context={"request": request})
 
-    return Response({
+    return _cache_public(Response({
         'products': serializer.data,
         'page': int(page),
         'pages': paginator.num_pages,
         'total': paginator.count,
-    })
+    }))
 
 @api_view(['GET'])
 def getCategories(request):
     categories = Category.objects.all()
     serializer = CategorySerializer(categories, many=True)
-    return Response(serializer.data)
+    return _cache_public(Response(serializer.data), max_age=600)
 
 @api_view(['GET'])
 def getBrand(request):
     brand = Brand.objects.all()
     serializer = BrandSerializer(brand, many=True)
-    return Response(serializer.data)
+    return _cache_public(Response(serializer.data), max_age=600)
 
 
 @api_view(['GET'])
